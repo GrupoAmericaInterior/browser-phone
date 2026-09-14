@@ -1,0 +1,27 @@
+services:
+  browser-phone:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: browser-phone:0.3.29
+    container_name: browser-phone
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - ./Docker/config/http-cloudflare.conf:/etc/asterisk/http.conf:ro
+      - ./Docker/config/pjsip.conf:/etc/asterisk/pjsip.conf:ro
+      - ./Docker/config/extensions.conf:/etc/asterisk/extensions.conf:ro
+      - ./Docker/config/rtp.conf:/etc/asterisk/rtp.conf:ro
+      - asterisk_logs:/var/log/asterisk
+      - asterisk_spool:/var/spool/asterisk
+    healthcheck:
+      test: ["CMD", "/usr/sbin/asterisk", "-rx", "core show uptime seconds"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    stop_grace_period: 30s
+
+volumes:
+  asterisk_logs:
+  asterisk_spool:

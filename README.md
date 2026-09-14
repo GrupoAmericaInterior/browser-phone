@@ -24,6 +24,35 @@ This web application is designed to work with Asterisk PBX. Once loaded applicat
 ### Docker
 Browser Phone now offers a [Dockerfile](https://github.com/InnovateAsterisk/Browser-Phone/blob/master/Dockerfile). It is by far "The easiest way to kick the tires on WebRTC". It comes fully configured with 3 users, and the SSL certificate needed to run your tests. It may take a while to build, but it's literally a 1, 2, 3 process.
 
+### Docker Compose with Cloudflare Tunnel
+
+The included `docker-compose.yml` runs Asterisk with host networking. This avoids
+Docker NAT for SIP and RTP and lets Asterisk use UDP ports `8000-10000` directly
+on the host.
+
+Start the service with:
+
+```bash
+docker compose up -d --build
+```
+
+Configure the public hostname in Cloudflare Tunnel with this origin service:
+
+```text
+http://ASTERISK_HOST_IP:8080
+```
+
+The same hostname serves the web application and the `/ws` WebSocket endpoint.
+In Browser Phone, use the public hostname, WebSocket port `443`, path `/ws`, and
+the SIP extension credentials configured in `Docker/config/pjsip.conf`.
+
+Cloudflare Tunnel proxies HTTPS and WebSocket signalling, but it does not proxy
+the WebRTC RTP UDP range. Clients must be able to reach the Asterisk host on UDP
+`8000-10000`, either directly over the local network, through a VPN, through a
+publicly reachable firewall rule, or through a separately configured TURN/media
+relay. Restrict TCP `8080` to the Cloudflare Tunnel host when the tunnel runs on
+a different machine.
+
 ## Features v0.3.x
 - SIP Audio Calling
 - SIP Video Calling
